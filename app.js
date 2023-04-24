@@ -43,6 +43,8 @@ const app = async () => {
     await page.click('.btn-primary');
   }
 
+  await sleep(2000)
+
   const acceptAll = await page.evaluate(() => {
     return !!document.querySelector('#acceptall') // !! converts anything to boolean
   });
@@ -134,6 +136,7 @@ const app = async () => {
     //   links => links.map(link => link.href)
     // );
     await page.waitForSelector('.card-body .border-bottom', { visible: true });
+    await page.waitForSelector('.card-body table', { visible: true });
 
     // const parent = await page.evaluate(() => document.querySelector('.card-body'));
     // const tab1 = await page.evaluate(() => parent.querySelectorAll('table')[0]);
@@ -141,21 +144,36 @@ const app = async () => {
     // const tab1Child = await page.evaluate(() => tab1.querySelectorAll('tbody tr'));
     // const tab2Child = await page.evaluate(() => tab2.querySelectorAll('tbody tr'));
     // await sleep(3000);
-    const telefon = await page.evaluate(() => document.querySelector('.card-body table:first').textContent.replace(/[\r\n]+/gm, '').trim().replace('Puni naziv:', '').replace(/\s+/g, " ").trim());
+    const telefon = await page.evaluate(() => document.querySelectorAll('.card-body table')[0].querySelector('tbody tr:nth-child(5) td').textContent.replace(/[\r\n]+/gm, '').replace('Telefon:', '').replace(/\s+/g, " ").trim());
+
+    await sleep(2000);
+    if (telefon.startsWith('09')) {
+      const name = await page.evaluate(() => document.querySelector('.card-body .border-bottom').textContent.replace(/[\r\n]+/gm, '').trim().replace('Puni naziv:', '').replace(/\s+/g, " ").trim());
+      const address = await page.evaluate(() => document.querySelectorAll('.card-body table')[0].querySelector('tbody tr:nth-child(1) td').textContent.replace(/[\r\n]+/gm, '').trim().replace('Subjekti na istoj adresi', '').trim().replace('Adresa:', '').replace(/\s+/g, " ").trim());
+      const activity = await page.evaluate(() => document.querySelectorAll('.card-body table')[0].querySelector('tbody tr:nth-child(2) td').textContent.replace(/[\r\n]+/gm, '').trim().replace(/[\r\n]+/gm, '').trim().replace('Djelatnost:', '').replace(/\s+/g, " ").trim());
+      const person = await page.evaluate(() => document.querySelectorAll('.card-body table')[0].textContent.match(new RegExp('Ovlaštene osobe\:(.*?)\\n', 'gm'))[0].replace('\n', '').replace('Ovlaštene osobe:', '').trim());
+      const size = await page.evaluate(() => document.querySelectorAll('.card-body table')[1].textContent.match(new RegExp('Veličina\:(.*?)\\n', 'gm'))[0].replace('\n', '').replace('Veličina:', '').trim());
 
 
-    const name = await page.evaluate(() => document.querySelector('.card-body .border-bottom').textContent.replace(/[\r\n]+/gm, '').trim().replace('Puni naziv:', '').replace(/\s+/g, " ").trim());
-    await sleep(3000);
-    // await sleep(7000);
-    console.log(name)
+      results.push({
+        name,
+        telefon,
+        address,
+        activity,
+        person,
+        size
+      });
+    }
+    await sleep(1000);
 
-    results.push({
-      name
-    });
+   
+    console.log(telefon)
+
+    
 
     counter++;
   }
 
   console.log(results)
 };
-// app();
+app();
